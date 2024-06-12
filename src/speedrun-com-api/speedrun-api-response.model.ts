@@ -19,7 +19,7 @@ interface RunCategoryData {
   links: unknown[];
 }
 
-interface RunPlayerData {
+export interface RunPlayerData {
   names: {
     international: string;
     japanese: null | string;

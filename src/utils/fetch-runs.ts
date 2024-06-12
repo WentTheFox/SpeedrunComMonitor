@@ -1,7 +1,7 @@
 // Split/Second game ID = 'm1zg3360'
-import { SpeedrunComApiClient } from '../speedrun-com-api/speedrun-com-api-client';
-import { SpeedrunApiEndpoint } from '../speedrun-com-api/speedrun-api-endpoint.enum';
-import { fetchLeaderboardPosition } from './fetch-leaderboard-position';
+import { SpeedrunComApiClient } from '../speedrun-com-api/speedrun-com-api-client.js';
+import { SpeedrunApiEndpoint } from '../speedrun-com-api/speedrun-api-endpoint.enum.js';
+import { fetchLeaderboardPosition } from './fetch-leaderboard-position.js';
 
 // const splitSecondGameId = 'm1zg3360';
 
@@ -23,7 +23,11 @@ export async function fetchRuns(client: SpeedrunComApiClient, gameId: string): P
   const allRuns: LocalRunData[] = [];
   for (const run of result.data) {
     const runId = run.id;
-    const verifiedAt = new Date(run.status['verify-date']).getTime();
+    const verifyDate = run.status['verify-date'];
+    if (typeof verifyDate !== 'string') {
+      continue;
+    }
+    const verifiedAt = new Date(verifyDate).getTime();
     let levelId: string | null = null;
     let levelName: string | null = null;
     let categoryId: string | null = null;
@@ -36,11 +40,14 @@ export async function fetchRuns(client: SpeedrunComApiClient, gameId: string): P
       categoryId = run.category.data.id;
       categoryName = run.category.data.name;
     }
+    if (categoryId === null || categoryName === null) {
+      continue;
+    }
     const position = categoryId && await fetchLeaderboardPosition(client, runId, gameId, categoryId, levelId);
     if (typeof position !== 'number') {
       continue;
     }
-    let playerNames: string[] | null;
+    let playerNames: string[] | null = null;
     if (!Array.isArray(run.players) && run.players.data) {
       playerNames = run.players.data.map(player => (
         player.names.japanese

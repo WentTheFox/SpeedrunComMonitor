@@ -1,6 +1,6 @@
-import { SpeedrunComApiClient } from '../speedrun-com-api/speedrun-com-api-client';
-import { SpeedrunApiEndpoint } from '../speedrun-com-api/speedrun-api-endpoint.enum';
-import { SpeedrunApiLeaderboardResponse } from '../speedrun-com-api/speedrun-api-response.model';
+import { SpeedrunComApiClient } from '../speedrun-com-api/speedrun-com-api-client.js';
+import { SpeedrunApiEndpoint } from '../speedrun-com-api/speedrun-api-endpoint.enum.js';
+import { SpeedrunApiLeaderboardResponse } from '../speedrun-com-api/speedrun-api-response.model.js';
 
 const findRunPlaceById = (response: SpeedrunApiLeaderboardResponse, runId: string): number | undefined => {
   return response.runs.find(runData => runData.run.id === runId)?.place;

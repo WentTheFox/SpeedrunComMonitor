@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 import { config as dotenvConfig } from 'dotenv';
 import { SpeedrunComApiClient } from './speedrun-com-api/speedrun-com-api-client.js';
-import { Subscription } from './entity/subscription.entity';
-import { createWebhookClient } from './discord/create-webhook-client';
-import { fetchRuns } from './utils/fetch-runs';
-import { Message } from './entity/message.entity';
-import { formatRunMessage } from './utils/format-run-message';
+import { Subscription } from './entity/subscription.entity.js';
+import { createWebhookClient } from './discord/create-webhook-client.js';
+import { fetchRuns } from './utils/fetch-runs.js';
+import { Message } from './entity/message.entity.js';
+import { formatRunMessage } from './utils/format-run-message.js';
 import { In } from 'typeorm';
-import { createAppDataSource } from './data-source';
+import { createAppDataSource } from './data-source.js';
 
 dotenvConfig();
 

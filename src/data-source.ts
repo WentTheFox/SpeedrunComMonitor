@@ -1,7 +1,6 @@
 import { DataSource } from 'typeorm';
-import { Message } from './entity/message.entity';
-import { Subscription } from './entity/subscription.entity';
-// @ts-expect-error The type definitions are wrong, this is how it is actually exposed
+import { Message } from './entity/message.entity.js';
+import { Subscription } from './entity/subscription.entity.js';
 import parse from 'pg-connection-string';
 
 export const createAppDataSource = (): DataSource => {
@@ -10,6 +9,7 @@ export const createAppDataSource = (): DataSource => {
     throw new Error('Missing database URL environment variable');
   }
 
+  // @ts-expect-error The type definition is wrong, this is fine
   const parsedConnectionString = parse(databaseUrl);
   return new DataSource({
     type: 'postgres',
