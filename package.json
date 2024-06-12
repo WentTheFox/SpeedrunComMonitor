@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "tsx src/index.ts",
-    "lint": "eslint .",
+    "lint:src": "eslint \"./{src,setup,migrations}/**/*.ts\"",
+    "lint:types": "tsc --noEmit",
+    "lint": "npm run lint:src && npm run lint:types",
     "migrate": "tsx node_modules/node-pg-migrate/bin/node-pg-migrate.js -j ts --template-file-name setup/migration-template.ts"
   },
   "type": "module",
