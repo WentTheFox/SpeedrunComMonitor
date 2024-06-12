@@ -2,12 +2,10 @@ import { DataSource } from 'typeorm';
 import { Message } from './entity/message.entity.js';
 import { Subscription } from './entity/subscription.entity.js';
 import parse from 'pg-connection-string';
+import { getEnvVar } from './utils/get-env-var.js';
 
 export const createAppDataSource = (): DataSource => {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (typeof databaseUrl !== 'string') {
-    throw new Error('Missing database URL environment variable');
-  }
+  const databaseUrl = getEnvVar('DATABASE_URL');
 
   // @ts-expect-error The type definition is wrong, this is fine
   const parsedConnectionString = parse(databaseUrl);

@@ -9,10 +9,11 @@ import { formatRunMessage } from './utils/format-run-message.js';
 import { In } from 'typeorm';
 import { createAppDataSource } from './data-source.js';
 import { localeSort } from './utils/locale-sort.js';
+import { getEnvVar } from './utils/get-env-var.js';
 
 dotenvConfig();
 
-const userAgent = process.env.USER_AGENT || 'SpeedrunComMonitor';
+const userAgent = getEnvVar('USER_AGENT', 'SpeedrunComMonitor');
 const apiClient = new SpeedrunComApiClient(userAgent);
 const webhookClient = createWebhookClient(userAgent);
 const AppDataSource = createAppDataSource();
