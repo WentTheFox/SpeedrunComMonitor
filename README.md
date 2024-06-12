@@ -1,15 +1,18 @@
 # SpeedrunComMonitor
 
-Automatically post new Speedrun.com runs in a Discord channel of your choice. Not affiliated with Speedrun.com.
+Automatically post new verified Speedrun.com runs in a Discord channel of your choice. Not affiliated with Speedrun.com.
 
-**The project is still work-in-progress, Discord bot functionality to be added later.**
+This project uses webhooks to save system resources by only pushing data when necessary.
+
+Each run of the script will store the messages it already sent in a PostgreSQL database to prevent duplicate messages.
 
 ## Basic usage
 
 1. Copy `.env.example` to `.env` (ignored from version control)
 2. Fill out the necessary values
 3. `npm ci`
-4. `npm run start`
+4. `npm run migrate up`
+5. `npm run start`
 
 This will list the most recent runs for the (currently hard-coded) game with the relevant data.
 

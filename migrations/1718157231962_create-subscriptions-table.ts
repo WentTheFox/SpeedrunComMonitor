@@ -10,14 +10,6 @@ export const up = async (pgm: MigrationBuilder) => {
       notNull: true,
       primaryKey: true,
     },
-    serverId: {
-      type: 'bigint',
-      notNull: true,
-    },
-    channelId: {
-      type: 'bigint',
-      notNull: true,
-    },
     gameId: {
       type: 'character varying(32)',
       notNull: true,
@@ -27,8 +19,8 @@ export const up = async (pgm: MigrationBuilder) => {
       default: true,
       notNull: true,
     },
-    template: {
-      type: 'text',
+    locale: {
+      type: 'character varying(12)',
       notNull: true,
     },
     createdAt: {

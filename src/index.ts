@@ -1,85 +1,72 @@
+import 'reflect-metadata';
+import { config as dotenvConfig } from 'dotenv';
 import { SpeedrunComApiClient } from './speedrun-com-api/speedrun-com-api-client.js';
-import { SpeedrunApiEndpoint } from './speedrun-com-api/speedrun-api-endpoint.enum.js';
-import { SpeedrunApiLeaderboardResponse, SpeedrunApiRunsResponse } from './speedrun-com-api/speedrun-api-response.model.js';
-import { DurationFormat } from '@formatjs/intl-durationformat';
+import { Subscription } from './entity/subscription.entity';
+import { createWebhookClient } from './discord/create-webhook-client';
+import { fetchRuns } from './utils/fetch-runs';
+import { Message } from './entity/message.entity';
+import { formatRunMessage } from './utils/format-run-message';
+import { In } from 'typeorm';
+import { createAppDataSource } from './data-source';
 
-const locale = 'en-US';
-const df = new DurationFormat(locale, { style: 'narrow' });
-const formatTime = (secondsFloat: number): string => {
-  let timeTally = secondsFloat;
-  const minutes = Math.floor(timeTally / 60);
-  timeTally -= minutes * 60;
-  const seconds = Math.floor(timeTally);
-  timeTally -= seconds;
-  const milliseconds = Math.round(1e3 * timeTally);
-  return df.format({ minutes, seconds, milliseconds });
-};
-
-const suffixMap = { one: 'st', two: 'nd', few: 'rd', zero: 'th', many: 'th', other: 'th' };
-const pr = new Intl.PluralRules(locale, { type: 'ordinal' });
-const formatPosition = (n: number) => `${n}${suffixMap[pr.select(n)]}`;
-
-const formatRun = async (client: SpeedrunComApiClient, run: SpeedrunApiRunsResponse): Promise<string | null> => {
-  const parts = [];
-  let levelId: string | null = null;
-  let categoryId: string | null = null;
-  if (run.level && typeof run.level === 'object' && !Array.isArray(run.level.data)) {
-    levelId = run.level.data.id;
-    parts.push(run.level.data.name);
-  }
-  if (run.category && typeof run.category === 'object') {
-    categoryId = run.category.data.id;
-    parts.push(run.category.data.name);
-  }
-  const position = categoryId && await fetchLeaderboardPosition(client, run.id, run.game, categoryId, levelId);
-  if (typeof position !== 'number') {
-    return null;
-  }
-  parts.push('in');
-  parts.push(formatTime(run.times.primary_t));
-  parts.push('by');
-  if (!Array.isArray(run.players) && run.players.data) {
-    const playerNames = run.players.data.map(player => (
-      player.names.japanese
-        ? `${player.names.japanese} (${player.names.international})`
-        : player.names.international
-    ));
-    parts.push(playerNames.join(', '));
-  }
-  parts.push('-');
-  parts.push(`${formatPosition(position)} place`);
-
-  return parts.join(' ') + '\n' + run.weblink;
-};
-
-const findRunPlaceById = (response: SpeedrunApiLeaderboardResponse, runId: string): number | undefined => {
-  return response.runs.find(runData => runData.run.id === runId)?.place;
-};
-
-async function fetchLeaderboardPosition(client: SpeedrunComApiClient, runId: string, gameId: string, categoryId: string, levelId: string | null): Promise<number | undefined> {
-  if (levelId) {
-    const result = await client.request(SpeedrunApiEndpoint.GET_LEADERBOARDS_GAME_LEVEL_LEVEL_CATEGORY, { level: levelId, game: gameId, category: categoryId });
-    return findRunPlaceById(result.data, runId);
-  }
-
-  const result = await client.request(SpeedrunApiEndpoint.GET_LEADERBOARDS_GAME_CATEGORY_CATEGORY, { game: gameId, category: categoryId });
-  return findRunPlaceById(result.data, runId);
-}
-
-async function fetchRuns(client: SpeedrunComApiClient): Promise<void> {
-  const gameId = 'm1zg3360';
-  const result = await client.request(SpeedrunApiEndpoint.GET_RUNS, { game: gameId, status: 'verified', orderby: 'verify-date', direction: 'desc', embed: 'category,level,players' });
-  for (const run of result.data) {
-    const formatResult = await formatRun(client, run);
-    if (typeof formatResult === 'string') {
-      console.log(formatResult);
-    }
-  }
-  // Force exit even if we have rate limits remaining
-  process.exit(1);
-}
+dotenvConfig();
 
 const userAgent = process.env.USER_AGENT || 'SpeedrunComMonitor';
-
 const apiClient = new SpeedrunComApiClient(userAgent);
-void fetchRuns(apiClient);
+const webhookClient = createWebhookClient(userAgent);
+const AppDataSource = createAppDataSource();
+
+const localeSort = (a: string, b: string) => a.localeCompare(b);
+
+AppDataSource.initialize().then(async () => {
+  console.log('Loading subscriptions…');
+  const subscriptions = await AppDataSource.manager.findBy(Subscription, { active: true });
+  console.log(`Found ${subscriptions.length} subscription(s)`);
+
+  for (const sub of subscriptions) {
+    console.log(`Started processing subscription ${sub.id}.`);
+    console.log(`Fetching runs for game ${sub.gameId}…`);
+    const runData = await fetchRuns(apiClient, sub.gameId);
+    console.log(`Fetched ${runData.length} run(s) successfully.`);
+    const runIdsSet = new Set(runData.map(run => run.runId));
+    const uniqueRunIdsArray = Array.from(runIdsSet);
+    console.log(`Received run IDs: ${uniqueRunIdsArray.sort(localeSort).join(', ')}`);
+
+    console.log(`Looking for existing messages with matching run IDs…`);
+    const existingMessages = await AppDataSource.manager.find(Message, {
+      where: { runId: In(uniqueRunIdsArray), subscriptionId: sub.id },
+      select: ['runId'],
+    });
+    const runIdsWithMessageSet = new Set(existingMessages.map(message => message.runId));
+    console.log(`Messages found in DB with run IDs: ${Array.from(runIdsWithMessageSet).sort(localeSort).join(', ')}`);
+
+    const newRunData = runData.filter(run => !runIdsWithMessageSet.has(run.runId)).sort((a, b) => a.verifiedAt - b.verifiedAt);
+    if (newRunData.length === 0) {
+      console.log(`No new run IDs to process.`);
+    } else {
+      const newRunIds = newRunData.map(run => run.runId);
+      console.log(`New run IDs to process: ${newRunIds.join(', ')}`);
+      for (const run of newRunData) {
+        await AppDataSource.manager.transaction(async () => {
+          console.log(`Sending message for run ${run.runId} to webhook…`);
+          const content = formatRunMessage(run, sub.locale);
+          const sentMessage = await webhookClient.send({ content });
+
+          console.log(`Message ${sentMessage.id} sent successfully, persisting in database…`);
+          const messageRecord = new Message();
+          messageRecord.id = sentMessage.id;
+          messageRecord.runId = run.runId;
+          messageRecord.subscriptionId = sub.id;
+          await AppDataSource.manager.save(messageRecord);
+
+          console.log(`Message ${sentMessage.id} persisted successfully.`);
+        });
+      }
+    }
+
+    console.log(`Finished processing subscription ${sub.id}.`);
+  }
+
+  // Force exit even if we have rate limits remaining
+  process.exit(0);
+}).catch(error => console.log(error));

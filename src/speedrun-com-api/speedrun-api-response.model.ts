@@ -33,8 +33,8 @@ export interface SpeedrunApiRunsResponse {
   level: string | null | { data: RunLevelData | [] };
   category: string | { data: RunCategoryData };
   status: {
-    'status': string;
-    'examiner': string | null;
+    status: string;
+    examiner: string | null;
     'verify-date': string | null;
   },
   players: {
@@ -55,8 +55,8 @@ export interface SpeedrunApiRunsResponse {
 }
 
 export interface SpeedrunApiLeaderboardRunData {
-    place: number,
-    run: SpeedrunApiRunsResponse
+  place: number,
+  run: SpeedrunApiRunsResponse
 }
 
 export interface SpeedrunApiLeaderboardResponse {
@@ -67,7 +67,7 @@ export interface SpeedrunApiLeaderboardResponse {
   platform: string | null;
   region: string | null;
   emulators: string | null;
-  "video-only": boolean;
+  'video-only': boolean;
   timing: string;
   values: Record<string, unknown>;
   runs: SpeedrunApiLeaderboardRunData[];

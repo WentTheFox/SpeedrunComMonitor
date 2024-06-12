@@ -5,24 +5,18 @@ export class Subscription {
   @PrimaryColumn({ type: 'uuid' })
   id: string;
 
-  @Column()
-  serverId: string;
-
-  @Column()
-  channelId: string;
-
-  @Column()
+  @Column({ type: 'character varying' })
   gameId: string;
 
-  @Column()
+  @Column({ type: 'boolean' })
   active: boolean;
 
-  @Column()
-  template: string;
+  @Column({ type: 'character varying' })
+  locale: string;
 
-  @CreateDateColumn({ type: "timestamptz" })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @CreateDateColumn({ type: "timestamptz" })
+  @CreateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }

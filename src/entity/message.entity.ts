@@ -5,15 +5,15 @@ export class Message {
   @PrimaryColumn({ type: 'bigint' })
   id: string;
 
-  @Column()
-  subscriptionId: number;
+  @Column({ type: 'character varying' })
+  subscriptionId: string;
 
-  @Column()
+  @Column({ type: 'character varying' })
   runId: string;
 
-  @CreateDateColumn({ type: "timestamptz" })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @CreateDateColumn({ type: "timestamptz" })
+  @CreateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }

@@ -34,7 +34,7 @@ export const up = async (pgm: MigrationBuilder) => {
       references: 'subscriptions(id)',
     },
     cascade: true,
-  })
+  });
 };
 
 export const down = (pgm: MigrationBuilder) => {

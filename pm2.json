@@ -1,0 +1,10 @@
+{
+  "apps": [
+    {
+      "name": "SpeedrunComMonitor",
+      "script": "npm start",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+      "cron_restart": "0 0 * * *"
+    }
+  ]
+}
