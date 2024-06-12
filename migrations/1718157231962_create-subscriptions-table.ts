@@ -21,6 +21,7 @@ export const up = async (pgm: MigrationBuilder) => {
     },
     locale: {
       type: 'character varying(12)',
+      default: 'en-US',
       notNull: true,
     },
     createdAt: {
