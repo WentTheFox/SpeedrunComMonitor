@@ -8,6 +8,7 @@ import { Message } from './entity/message.entity.js';
 import { formatRunMessage } from './utils/format-run-message.js';
 import { In } from 'typeorm';
 import { createAppDataSource } from './data-source.js';
+import { localeSort } from './utils/locale-sort.js';
 
 dotenvConfig();
 
@@ -16,12 +17,10 @@ const apiClient = new SpeedrunComApiClient(userAgent);
 const webhookClient = createWebhookClient(userAgent);
 const AppDataSource = createAppDataSource();
 
-const localeSort = (a: string, b: string) => a.localeCompare(b);
-
 AppDataSource.initialize().then(async () => {
-  console.log('Loading subscriptions…');
+  console.log('Loading active subscriptions…');
   const subscriptions = await AppDataSource.manager.findBy(Subscription, { active: true });
-  console.log(`Found ${subscriptions.length} subscription(s)`);
+  console.log(`Found ${subscriptions.length} active subscription(s)`);
 
   for (const sub of subscriptions) {
     console.log(`Started processing subscription ${sub.id}.`);
