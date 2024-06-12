@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   lint-and-test:
-    name: 'Building, Linting and Unit Tests'
+    name: 'Linting and Unit Tests'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -33,5 +33,3 @@ jobs:
 
       # TODO Add tests
       # - run: npm run test
-
-      - run: npm run build
