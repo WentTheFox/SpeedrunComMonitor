@@ -28,7 +28,7 @@ export class SpeedrunComApiClient {
       headers: {
         Accept: 'application/json',
         'User-Agent': this.userAgent,
-      }
+      },
     });
     if (!result.ok) {
       if (result.status === 420) {
@@ -64,10 +64,12 @@ export class SpeedrunComApiClient {
   protected getRequestQueryParamsOnly<T extends SpeedrunApiEndpoint>(endpoint: T, params: SpeedrunApiRequestParams[T]): Record<string, string> {
     switch (endpoint) {
       case SpeedrunApiEndpoint.GET_LEADERBOARDS_GAME_CATEGORY_CATEGORY: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Only used for removing the values from the source object
         const { category, game, ...rest } = params as SpeedrunApiRequestParams[SpeedrunApiEndpoint.GET_LEADERBOARDS_GAME_CATEGORY_CATEGORY];
         return rest;
       }
       case SpeedrunApiEndpoint.GET_LEADERBOARDS_GAME_LEVEL_LEVEL_CATEGORY: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Only used for removing the values from the source object
         const { category, game, level, ...rest } = params as SpeedrunApiRequestParams[SpeedrunApiEndpoint.GET_LEADERBOARDS_GAME_LEVEL_LEVEL_CATEGORY];
         return rest;
       }

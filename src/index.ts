@@ -31,7 +31,7 @@ const formatRun = async (client: SpeedrunComApiClient, run: SpeedrunApiRunsRespo
     categoryId = run.category.data.id;
     parts.push(run.category.data.name);
   }
-  let position = categoryId && await fetchLeaderboardPosition(client, run.id, run.game, categoryId, levelId);
+  const position = categoryId && await fetchLeaderboardPosition(client, run.id, run.game, categoryId, levelId);
   if (typeof position !== 'number') {
     return null;
   }
