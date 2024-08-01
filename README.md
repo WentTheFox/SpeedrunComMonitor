@@ -13,7 +13,7 @@ Each run of the script will store the messages it already sent in a PostgreSQL d
     - `DISCORD_WEBHOOK_URL` must be a full webhook URL (see [Intro to Webhooks])
     - `DATABASE_URL` must be a PostgreSQL database connection string (including all necessary connection parameters)
     - `USER_AGENT` is a free-text identifier for all requests going to Speedrun.com (they [ask very nicely] to make it descriptive)
-    - `POST_VERIFIED_AFTER` can be left blank, but when an [ISO 8601] standard timestamp is specified, rus verifier before that timestamp are ignored
+    - `POST_VERIFIED_AFTER` can be left blank, but when an [ISO 8601] standard timestamp is specified, runs verified before that timestamp are ignored
 3. `npm ci`
 4. `npm run migrate up`
 5. Import `setup/seed.sql` (tweak as necessary)
