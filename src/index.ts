@@ -3,7 +3,7 @@ import { config as dotenvConfig } from 'dotenv';
 import { SpeedrunComApiClient } from './speedrun-com-api/speedrun-com-api-client.js';
 import { Subscription } from './entity/subscription.entity.js';
 import { createWebhookClient } from './discord/create-webhook-client.js';
-import { fetchRuns } from './utils/fetch-runs.js';
+import { fetchRuns, LocalRunData } from './utils/fetch-runs.js';
 import { Message } from './entity/message.entity.js';
 import { formatRunMessage } from './utils/format-run-message.js';
 import { In } from 'typeorm';
@@ -40,19 +40,22 @@ AppDataSource.initialize().then(async () => {
     console.log(`Fetched ${runData.length} run(s) successfully.`);
     const runIdsSet = new Set(runData.map(run => run.runId));
     const uniqueRunIdsArray = Array.from(runIdsSet);
-    console.log(`Received run IDs: ${uniqueRunIdsArray.sort(localeSort).join(', ')}`);
+    let newRunData: LocalRunData[] | null = null;
+    if (uniqueRunIdsArray.length > 0) {
+      console.log(`Received run IDs: ${uniqueRunIdsArray.sort(localeSort).join(', ')}`);
 
-    console.log(`Looking for existing messages with matching run IDs…`);
-    const existingMessages = await AppDataSource.manager.find(Message, {
-      where: { runId: In(uniqueRunIdsArray), subscriptionId: sub.id },
-      select: ['runId'],
-    });
-    const runIdsWithMessageSet = new Set(existingMessages.map(message => message.runId));
-    console.log(`Messages found in DB with run IDs: ${Array.from(runIdsWithMessageSet).sort(localeSort).join(', ')}`);
+      console.log(`Looking for existing messages with matching run IDs…`);
+      const existingMessages = await AppDataSource.manager.find(Message, {
+        where: { runId: In(uniqueRunIdsArray), subscriptionId: sub.id },
+        select: ['runId'],
+      });
+      const runIdsWithMessageSet = new Set(existingMessages.map(message => message.runId));
+      console.log(`Messages found in DB with run IDs: ${Array.from(runIdsWithMessageSet).sort(localeSort).join(', ')}`);
 
-    const newRunData = runData.filter(run => !runIdsWithMessageSet.has(run.runId)).sort((a, b) => a.verifiedAt - b.verifiedAt);
-    if (newRunData.length === 0) {
-      console.log(`No new run IDs to process.`);
+      newRunData = runData.filter(run => !runIdsWithMessageSet.has(run.runId)).sort((a, b) => a.verifiedAt - b.verifiedAt);
+    }
+    if (newRunData === null || newRunData.length === 0) {
+      console.log('No new run IDs to process.');
     } else {
       const newRunIds = newRunData.map(run => run.runId);
       console.log(`New run IDs to process: ${newRunIds.join(', ')}`);
