@@ -18,9 +18,16 @@ export interface LocalRunData {
   verifiedAt: number;
 }
 
-export async function fetchRuns(client: SpeedrunComApiClient, gameId: string): Promise<LocalRunData[]> {
-  const result = await client.request(SpeedrunApiEndpoint.GET_RUNS, { game: gameId, status: 'verified', orderby: 'verify-date', direction: 'desc', embed: 'category,level,players' });
+export async function fetchRuns(client: SpeedrunComApiClient, gameId: string, startDate: Date): Promise<LocalRunData[]> {
+  const result = await client.request(SpeedrunApiEndpoint.GET_RUNS, {
+    game: gameId,
+    status: 'verified',
+    orderby: 'verify-date',
+    direction: 'desc',
+    embed: 'category,level,players',
+  });
   const allRuns: LocalRunData[] = [];
+  const startTimestamp = startDate.getTime();
   for (const run of result.data) {
     const runId = run.id;
     const verifyDate = run.status['verify-date'];
@@ -28,6 +35,9 @@ export async function fetchRuns(client: SpeedrunComApiClient, gameId: string): P
       continue;
     }
     const verifiedAt = new Date(verifyDate).getTime();
+    if (verifiedAt < startTimestamp) {
+      continue;
+    }
     let levelId: string | null = null;
     let levelName: string | null = null;
     let categoryId: string | null = null;

@@ -14,11 +14,21 @@ import { getEnvVar } from './utils/get-env-var.js';
 dotenvConfig();
 
 const userAgent = getEnvVar('USER_AGENT', 'SpeedrunComMonitor');
+const defaultStartTime = 0;
+const startDateString = getEnvVar('POST_VERIFIED_AFTER', new Date(defaultStartTime).toISOString());
 const apiClient = new SpeedrunComApiClient(userAgent);
 const webhookClient = createWebhookClient(userAgent);
 const AppDataSource = createAppDataSource();
 
 AppDataSource.initialize().then(async () => {
+  const startDate = new Date(startDateString);
+  if (isNaN(startDate.getTime())) {
+    throw new Error('The provided POST_VERIFIED_AFTER timestamp is invalid');
+  }
+  if (startDate.getTime() !== defaultStartTime) {
+    console.log(`Filtering is active to not post runs verified before ${startDate.toLocaleString()}`);
+  }
+
   console.log('Loading active subscriptions…');
   const subscriptions = await AppDataSource.manager.findBy(Subscription, { active: true });
   console.log(`Found ${subscriptions.length} active subscription(s)`);
@@ -26,7 +36,7 @@ AppDataSource.initialize().then(async () => {
   for (const sub of subscriptions) {
     console.log(`Started processing subscription ${sub.id}.`);
     console.log(`Fetching runs for game ${sub.gameId}…`);
-    const runData = await fetchRuns(apiClient, sub.gameId);
+    const runData = await fetchRuns(apiClient, sub.gameId, startDate);
     console.log(`Fetched ${runData.length} run(s) successfully.`);
     const runIdsSet = new Set(runData.map(run => run.runId));
     const uniqueRunIdsArray = Array.from(runIdsSet);
@@ -69,4 +79,7 @@ AppDataSource.initialize().then(async () => {
 
   // Force exit even if we have rate limits remaining
   process.exit(0);
-}).catch(error => console.log(error));
+}).catch(error => {
+  console.log(error);
+  process.exit(1);
+});
