@@ -4,6 +4,9 @@
       "name": "SpeedrunComMonitor",
       "script": "npm start",
       "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+      "out_file": "logs/pm2-out.log",
+      "error_file": "logs/pm2-error.log",
+      "merge_logs": true,
       "cron_restart": "0 * * * *",
       "autorestart": false
     }
