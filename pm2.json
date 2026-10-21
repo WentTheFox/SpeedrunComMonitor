@@ -8,7 +8,10 @@
       "error_file": "logs/pm2-error.log",
       "merge_logs": true,
       "cron_restart": "0 * * * *",
-      "autorestart": false
+      "autorestart": false,
+      "env": {
+        "NODE_OPTIONS": "--use-openssl-ca"
+      }
     }
   ]
 }
