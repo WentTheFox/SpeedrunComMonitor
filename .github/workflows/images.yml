@@ -17,6 +17,8 @@ permissions:
 
 jobs:
   commitlint:
+    # informational only: must not gate the image build (older upstream commits are not conventional)
+    continue-on-error: true
     name: 'Lint commit messages'
     runs-on: ubuntu-24.04
     steps:
@@ -29,7 +31,6 @@ jobs:
 
   build:
     name: 'Build ${{ matrix.arch }}'
-    needs: commitlint
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     strategy:
